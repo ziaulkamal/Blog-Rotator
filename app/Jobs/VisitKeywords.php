@@ -29,7 +29,8 @@ class VisitKeywords implements ShouldQueue
             $keywords = KeywordData::limit(100)->pluck('keyword')->toArray();
 
             foreach ($keywords as $keyword) {
-                $url = route('visit.me', ['any' => urlencode($keyword)]);
+                $cleanKeyword = preg_replace('/[^a-zA-Z0-9\s]/', '', $keyword);
+                $url = route('visit.me', ['any' => urlencode($cleanKeyword)]);
 
                 // Lakukan permintaan GET ke URL
                 $response = Http::get($url);
