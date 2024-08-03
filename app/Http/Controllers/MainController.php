@@ -33,9 +33,10 @@ class MainController extends Controller
                         'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36',
                         'Accept-Language' => 'en-US',
                         'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                    ]
-                ]);
+                        ]
+                    ]);
 
+                dd($crawler);
                 $searchResults = [];
 
                 $crawler->filter('h3')->each(function ($node) use (&$searchResults) {
@@ -61,7 +62,6 @@ class MainController extends Controller
                         }
                     }
                 }
-                dd($searchResults);
                 // Simpan keyword ke dalam database
                 foreach ($suggestions as $setDatas) {
                     // dd($setDatas);
@@ -87,7 +87,7 @@ class MainController extends Controller
             }
         }
 
-                    dd($suggestions);
+                    // dd($suggestions);
         // Pilih salah satu keyword secara acak
         $popular = [];
         if (count($suggestions) > 0) {
