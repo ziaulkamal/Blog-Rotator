@@ -32,11 +32,14 @@ class SitemapController extends Controller
             ];
         });
 
-        $sitemap = view('sitemap', [
+        // Render the sitemap view
+        $sitemapContent = view('sitemap', [
             'rssUrls' => $rssUrls,
             'keywords' => $formattedKeywords,
-        ]);
+        ])->render(); // Ensure rendering as a string
 
-        return response($sitemap, 200, ['Content-Type' => 'application/xml']);
+        // Return the response with the correct XML content type
+        return response($sitemapContent, 200)
+            ->header('Content-Type', 'application/xml');
     }
 }

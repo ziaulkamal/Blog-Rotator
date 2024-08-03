@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     @foreach ($keywords as $keyword)
         <url>
-            <loc>{{ $keyword['loc'] }}</loc>
+            <loc>{{ htmlspecialchars($keyword['loc'], ENT_XML1, 'UTF-8') }}</loc>
             <lastmod>{{ $keyword['lastmod'] }}</lastmod>
             <changefreq>{{ $keyword['changefreq'] }}</changefreq>
             <priority>{{ $keyword['priority'] }}</priority>
