@@ -6,6 +6,7 @@ use App\Models\KeywordData;
 use Goutte\Client as GoutteClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Symfony\Component\DomCrawler\Crawler;
 
 class MainController extends Controller
 {
