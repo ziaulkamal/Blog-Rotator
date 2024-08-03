@@ -121,7 +121,7 @@ class MainController extends Controller
 
         // Update indeks untuk rotasi berikutnya
         $nextIndex = ($index + 1) % count($data);
-        Cache::put('google_api_key_index', $nextIndex, now()->addMinutes(10)); // Ganti sesuai dengan frekuensi rotasi
+        Cache::put('google_api_key_index', $nextIndex, now()->addSeconds(10)); // Ganti sesuai dengan frekuensi rotasi
 
         return ['apiKey' => $apiKey, 'cseId' => $cseId];
     }
