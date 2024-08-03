@@ -36,7 +36,7 @@ class MainController extends Controller
                         ]
                     ]);
 
-                dd($crawler);
+                dd($crawler->uri);
                 $searchResults = [];
 
                 $crawler->filter('h3')->each(function ($node) use (&$searchResults) {
