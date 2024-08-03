@@ -6,6 +6,7 @@
     <meta name="robots" content="index, follow">
     <meta name="description" content="{{ $metaDescription }}">
     <meta name="keywords" content="{{ $metaKeywords }}">
+    <meta name="google-site-verification" content="jCUHDhH4c9xNre-89FrR2nHeR1w_mPtT5oyGJ6MMUkc" />
     <title>{{ $title }}</title>
 </head>
 <body>
