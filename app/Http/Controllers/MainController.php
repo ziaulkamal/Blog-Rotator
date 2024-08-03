@@ -19,7 +19,7 @@ class MainController extends Controller
 
         $response = Http::get($url);
         $data = $response->json();
-
+        dd($response->failed());
         // Periksa apakah ada kesalahan
         if ($response->failed()) {
             $decoded = $response->json();
