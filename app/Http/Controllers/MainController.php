@@ -61,7 +61,7 @@ class MainController extends Controller
                         }
                     }
                 }
-
+                dd($suggestions);
                 // Simpan keyword ke dalam database
                 foreach ($suggestions as $setDatas) {
                     // dd($setDatas);
