@@ -36,7 +36,10 @@ class MainController extends Controller
                         ]
                     ]);
 
-                dd($crawler);
+                $baseHref = $crawler->getBaseHref();
+                if (strpos($baseHref, 'consent.google.com') !== false) {
+                    $this->handleConsent($crawler);
+                }
                 $searchResults = [];
 
                 $crawler->filter('h3')->each(function ($node) use (&$searchResults) {
@@ -143,5 +146,32 @@ class MainController extends Controller
         });
 
         return $searchResults;
+    }
+
+    private function handleConsent(Crawler $crawler)
+    {
+        // Gantikan dengan Puppeteer jika perlu interaksi dinamis
+        \Log::info('Mengalami halaman persetujuan. Mengarahkan ulang...');
+
+        // Mengambil URL persetujuan
+        $consentUrl = $crawler->filter('a')->link()->getUri();
+
+        // Menggunakan HTTP untuk mengikuti tautan persetujuan (sederhana, tanpa interaksi dinamis)
+        $response = Http::get($consentUrl);
+
+        if ($response->ok()) {
+            $crawler = new Crawler($response->body());
+            $button = $crawler->filter('input.basebutton.button.searchButton[aria-label="Alle ablehnen"]');
+            if ($button->count() > 0) {
+                // Klik tombol dan ikuti pengalihan
+                $formAction = $button->parents()->filter('form')->attr('action');
+                $response = Http::post($formAction, [
+                    // Tambahkan data yang diperlukan untuk form jika ada
+                ]);
+                if ($response->ok()) {
+                    \Log::info('Berhasil menolak persetujuan.');
+                }
+            }
+        }
     }
 }
