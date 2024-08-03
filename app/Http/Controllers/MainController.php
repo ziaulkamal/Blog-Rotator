@@ -38,6 +38,7 @@ class MainController extends Controller
                     ]);
 
                 $baseHref = $crawler->getBaseHref();
+                dd($crawler, $baseHref);
                 if (strpos($baseHref, 'consent.google.com') !== false) {
                     $this->handleConsent($crawler);
                 }
