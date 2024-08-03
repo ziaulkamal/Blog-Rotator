@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\KeywordData;
 use Illuminate\Http\Response;
-use Illuminate\Support\Str;
 
 class SitemapController extends Controller
 {
@@ -32,7 +31,7 @@ class SitemapController extends Controller
             ];
         });
 
-        // Render the sitemap view
+        // Render the sitemap view as a string
         $sitemapContent = view('sitemap', [
             'rssUrls' => $rssUrls,
             'keywords' => $formattedKeywords,
