@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::get('/{any}', [MainController::class, 'scrapeAndSaveKeywords'])
-    ->where('any', '.*');
+    ->where('any', '.*')->name('visit.me');
 
 // Route::get('/fetch-trends', [GoogleTrendsController::class, 'fetchTrends']);
 
