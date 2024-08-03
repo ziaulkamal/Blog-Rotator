@@ -19,7 +19,7 @@ class MainController extends Controller
 
         $response = Http::get($url);
         $data = $response->json();
-        dd($response->failed());
+        // dd($response->failed());
         // Periksa apakah ada kesalahan
         if ($response->failed()) {
             $decoded = $response->json();
@@ -67,6 +67,7 @@ class MainController extends Controller
                     // dd($setDatas);
                     $keywordData = KeywordData::firstOrCreate(['keyword' => $setDatas]);
                     $keywordData->increment('hit');
+
                 }
             } else {
                 $suggestions = [];
@@ -86,7 +87,7 @@ class MainController extends Controller
             }
         }
 
-
+                    dd($suggestions);
         // Pilih salah satu keyword secara acak
         $popular = [];
         if (count($suggestions) > 0) {
