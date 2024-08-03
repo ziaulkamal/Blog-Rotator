@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Jobs\FetchTrends;
+use App\Jobs\VisitKeywords;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -14,6 +15,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->job(new FetchTrends(app(\App\Services\KeywordService::class)))->everyMinute();
+         $schedule->job(new VisitKeywords)->everyTwoMinutes();
     }
 
     /**
