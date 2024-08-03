@@ -5,103 +5,50 @@ namespace App\Http\Controllers;
 use App\Models\KeywordData;
 use Goutte\Client as GoutteClient;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Symfony\Component\DomCrawler\Crawler;
+
 
 class MainController extends Controller
 {
     public function scrapeAndSaveKeywords($any = '')
     {
-        // Gunakan string kosong jika $any tidak diberikan
-        $apiKey = 'AIzaSyDDpxGjixl23nxUASuOdb4ydhRdr4zgpI8';
-        $cseId = '918c00d62fdd34400';
+
         $query = urlencode($any ?: ''); // Gunakan string kosong jika $any kosong
-        $url = "https://www.googleapis.com/customsearch/v1?q=$query&key=$apiKey&cx=$cseId";
+
+        $credentials = $this->dataConst();
+        $apiKey = $credentials['apiKey'];
+        $cseId = $credentials['cseId'];
+        $url = "https://www.googleapis.com/customsearch/v1?q=" . urlencode($query) . "&key=$apiKey&cx=$cseId";
 
         $response = Http::get($url);
         $data = $response->json();
-        // dd($response->failed());
-        // Periksa apakah ada kesalahan
-        if ($response->failed()) {
-            $decoded = $response->json();
-            if (isset($decoded['error']['code']) && $decoded['error']['code'] == 429) {
-                $query = urlencode($any);
-                $url = "https://www.google.com/search?q=$query";
 
-                $goutteClient = new GoutteClient();
-                $crawler = $goutteClient->request('GET', $url, [
-                    'headers' => [
-                        'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36',
-                        'Accept-Language' => 'en-US',
-                        'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                        ]
-                    ]);
-
-                $baseHref = $crawler->getBaseHref();
-                dd($crawler, $baseHref);
-                if (strpos($baseHref, 'consent.google.com') !== false) {
-                    $this->handleConsent($crawler);
-                }
-                $searchResults = [];
-
-                $crawler->filter('h3')->each(function ($node) use (&$searchResults) {
-                    $title = $node->text();
-                    $linkElement = $node->closest('a');
-                    $link = $linkElement ? $linkElement->attr('href') : null;
-
-                    if (!empty($title)) {
-                        $searchResults[] = [
-                            'title' => $title,
-                            'link' => $link,
-                        ];
-                    }
-                });
-
-                $suggestions = [];
-
-                if ($searchResults) {
-                    foreach ($searchResults as $item) {
-                        // dd($item);
-                        if (isset($item['title'])) {
-                            $suggestions[] = $item['title'];
-                        }
-                    }
-                }
-                // Simpan keyword ke dalam database
-                foreach ($suggestions as $setDatas) {
-                    // dd($setDatas);
-                    $keywordData = KeywordData::firstOrCreate(['keyword' => $setDatas]);
-                    $keywordData->increment('hit');
-
-                }
-            } else {
-                $suggestions = [];
-                if (isset($data['items'])) {
-                    foreach ($data['items'] as $item) {
-                        if (isset($item['title'])) {
-                            $suggestions[] = $item['title'];
-                        }
-                    }
-                }
-
-                // Simpan keyword ke dalam database
-                foreach ($suggestions as $suggestion) {
-                    $keywordData = KeywordData::firstOrCreate(['keyword' => $suggestion]);
-                    $keywordData->increment('hit');
+        $suggestions = [];
+        if (isset($data['items'])) {
+            foreach ($data['items'] as $item) {
+                if (isset($item['title'])) {
+                    $suggestions[] = $item['title'];
                 }
             }
         }
 
-                    // dd($suggestions);
+        // Simpan keyword ke dalam database
+        foreach ($suggestions as $suggestion) {
+            $keywordData = KeywordData::firstOrCreate(['keyword' => $suggestion]);
+            $keywordData->increment('hit');
+        }
+
         // Pilih salah satu keyword secara acak
         $popular = [];
         if (count($suggestions) > 0) {
             $randomKeyword = $suggestions[array_rand($suggestions)];
             $popular = $this->searchKeyword($randomKeyword);
+
         }
 
         // Ambil hingga 100 keyword dari database
-        $keywords = KeywordData::limit(100)->pluck('keyword')->toArray();
+        $keywords = KeywordData::limit(300)->pluck('keyword')->toArray();
         shuffle($keywords);
         $keywordsString = implode(', ', $keywords);
 
@@ -131,7 +78,7 @@ class MainController extends Controller
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
             ]
         ]);
-
+        // dd($crawler);
         $searchResults = [];
 
         $crawler->filter('h3')->each(function ($node) use (&$searchResults) {
@@ -150,30 +97,32 @@ class MainController extends Controller
         return $searchResults;
     }
 
-    private function handleConsent(Crawler $crawler)
-    {
-        // Gantikan dengan Puppeteer jika perlu interaksi dinamis
-        \Log::info('Mengalami halaman persetujuan. Mengarahkan ulang...');
+    private function dataConst() {
+        $data = [
+            'account_1' => [
+                'apiKey'    => 'AIzaSyCdogjHgWu2BJndKr8s-Pyj1VfbHleMqEo',
+                'cseId'     => '04327ce68475f4076'
+            ],
+            'account_2' => [
+                'apiKey'    => 'AIzaSyBhvs4xfTu8A7ayg-RsKQREqBDH--DrZW8',
+                'cseId'     => '36ee2f8543f584667'
+            ],
+            'account_3' => [
+                'apiKey'    => 'AIzaSyDDpxGjixl23nxUASuOdb4ydhRdr4zgpI8',
+                'cseId'     => '918c00d62fdd34400'
+            ],
+        ];
 
-        // Mengambil URL persetujuan
-        $consentUrl = $crawler->filter('a')->link()->getUri();
+        $index = Cache::get('google_api_key_index', 0);
 
-        // Menggunakan HTTP untuk mengikuti tautan persetujuan (sederhana, tanpa interaksi dinamis)
-        $response = Http::get($consentUrl);
+        // Pilih API Key dan CSE ID berdasarkan indeks
+        $apiKey = $data["account_" . ($index + 1)]['apiKey'];
+        $cseId = $data["account_" . ($index + 1)]['cseId'];
 
-        if ($response->ok()) {
-            $crawler = new Crawler($response->body());
-            $button = $crawler->filter('input.basebutton.button.searchButton[aria-label="Alle ablehnen"]');
-            if ($button->count() > 0) {
-                // Klik tombol dan ikuti pengalihan
-                $formAction = $button->parents()->filter('form')->attr('action');
-                $response = Http::post($formAction, [
-                    // Tambahkan data yang diperlukan untuk form jika ada
-                ]);
-                if ($response->ok()) {
-                    \Log::info('Berhasil menolak persetujuan.');
-                }
-            }
-        }
+        // Update indeks untuk rotasi berikutnya
+        $nextIndex = ($index + 1) % count($data);
+        Cache::put('google_api_key_index', $nextIndex, now()->addMinutes(10)); // Ganti sesuai dengan frekuensi rotasi
+
+        return ['apiKey' => $apiKey, 'cseId' => $cseId];
     }
 }
