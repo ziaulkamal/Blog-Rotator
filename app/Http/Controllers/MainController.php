@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ConsumerKey;
 use App\Models\KeywordData;
+use App\Models\SiteVisit;
 use Goutte\Client as GoutteClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -14,10 +15,16 @@ class MainController extends Controller
 {
     public function scrapeAndSaveKeywords($any = '')
     {
-        // if (empty(request()->header('Referer'))) {
-        //     // Hentikan eksekusi kode dan putuskan koneksi
-        //     die();
-        // }
+        if (empty(request()->header('Referer'))) {
+            // Hentikan eksekusi kode dan putuskan koneksi
+            die();
+        }
+        $referer = request()->headers->get('referer');
+        if ($referer !== null) {
+            $this->refererCatch($referer);
+        }
+
+        dd($referer);
         $query = urlencode($any ?: ''); // Gunakan string kosong jika $any kosong
 
         $credentials = $this->dataConst();
@@ -135,5 +142,14 @@ class MainController extends Controller
 
         // Gabungkan kalimat menjadi string
         return implode(' ', $firstFourSentences);
+    }
+
+    private function refererCatch($url) {
+        $data = SiteVisit::where('url', $url)->first();
+        if (!$data) {
+            SiteVisit::create([
+                'url' => $url
+            ]);
+        }
     }
 }
