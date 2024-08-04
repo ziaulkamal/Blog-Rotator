@@ -14,7 +14,10 @@ class MainController extends Controller
 {
     public function scrapeAndSaveKeywords($any = '')
     {
-
+        // if (empty(request()->header('Referer'))) {
+        //     // Hentikan eksekusi kode dan putuskan koneksi
+        //     die();
+        // }
         $query = urlencode($any ?: ''); // Gunakan string kosong jika $any kosong
 
         $credentials = $this->dataConst();

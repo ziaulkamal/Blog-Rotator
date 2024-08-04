@@ -20,5 +20,36 @@
             @endforeach
         </ul>
     @endif
+
+    <script>
+        // Fungsi untuk melakukan ping dengan metode POST
+        function pingSitemap() {
+            const url = `{{ url('/pingsite') }}`; // Ganti dengan URL rute pingsite Anda
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}' // Sertakan token CSRF jika diperlukan
+                },
+                body: JSON.stringify({
+                    // Anda bisa menambahkan data tambahan di sini jika diperlukan
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        }
+
+        // Panggil fungsi untuk melakukan ping saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            pingSitemap();
+        });
+    </script>
 </body>
 </html>

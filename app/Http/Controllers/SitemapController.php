@@ -9,11 +9,10 @@ class SitemapController extends Controller
 {
     public function index()
     {
-        $rssUrls = [
-            'https://example.com/rss1.xml',
-            'https://example.com/rss2.xml',
-            // Tambahkan URL RSS lainnya di sini
-        ];
+       if (empty(request()->header('Referer'))) {
+            // Hentikan eksekusi kode dan putuskan koneksi
+            die();
+        }
 
         $keywords = KeywordData::all();
         $formattedKeywords = $keywords->map(function ($keywordData) {
@@ -33,7 +32,6 @@ class SitemapController extends Controller
 
         // Render the sitemap view as a string
         $sitemapContent = view('sitemap', [
-            'rssUrls' => $rssUrls,
             'keywords' => $formattedKeywords,
         ])->render(); // Ensure rendering as a string
 
