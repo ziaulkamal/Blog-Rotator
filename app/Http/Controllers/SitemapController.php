@@ -24,7 +24,7 @@ class SitemapController extends Controller
             $keyword = str_replace(' ', '-', $keyword);
 
             return [
-                'loc' => url("/search/$keyword"), // URL untuk setiap keyword
+                'loc' => url("/$keyword"), // URL untuk setiap keyword
                 'lastmod' => $keywordData->updated_at->toAtomString(),
                 'changefreq' => 'daily',
                 'priority' => '0.8',

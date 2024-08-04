@@ -16,7 +16,7 @@
         <h2>Maybe interest</h2>
         <ul>
             @foreach($popular as $item)
-                <li><a href="{{ $item['link'] }}">{{ $item['title'] }}</a></li>
+                <li><a href="{{ url(($item['title'])) }}">{{ $item['title'] }}</a></li>
             @endforeach
         </ul>
     @endif

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ConsumerKey;
 use App\Models\KeywordData;
 use Goutte\Client as GoutteClient;
 use Illuminate\Http\Request;
@@ -35,20 +36,21 @@ class MainController extends Controller
 
         // Simpan keyword ke dalam database
         foreach ($suggestions as $suggestion) {
-            $keywordData = KeywordData::firstOrCreate(['keyword' => $suggestion]);
+
+            $keywordData = KeywordData::firstOrCreate(['keyword' => $this->getFirstFourSentences($suggestion)]);
             $keywordData->increment('hit');
         }
-
+        // dd($suggestions);
         // Pilih salah satu keyword secara acak
         $popular = [];
         if (count($suggestions) > 0) {
             $randomKeyword = $suggestions[array_rand($suggestions)];
-            $popular = $this->searchKeyword($randomKeyword);
+            $popular = $this->searchKeyword($query);
 
         }
 
         // Ambil hingga 100 keyword dari database
-        $keywords = KeywordData::limit(300)->pluck('keyword')->toArray();
+        $keywords = KeywordData::limit(500)->pluck('keyword')->toArray();
         shuffle($keywords);
         $keywordsString = implode(', ', $keywords);
 
@@ -68,9 +70,12 @@ class MainController extends Controller
     public function searchKeyword($keyword)
     {
         $query = urlencode($keyword);
-        $url = "https://www.google.com/search?q=$query";
+        $url = "https://search.aol.com/aol/search?q=$query&s_qt=ac&rp=&s_chn=prt_bon&s_it=comsearch";
 
         $goutteClient = new GoutteClient();
+        $goutteClient->setServerParameters([
+            'verify' => false
+        ]);
         $crawler = $goutteClient->request('GET', $url, [
             'headers' => [
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36',
@@ -81,7 +86,7 @@ class MainController extends Controller
         // dd($crawler);
         $searchResults = [];
 
-        $crawler->filter('h3')->each(function ($node) use (&$searchResults) {
+        $crawler->filter('td.w-50p.pr-28')->each(function ($node) use (&$searchResults) {
             $title = $node->text();
             $linkElement = $node->closest('a');
             $link = $linkElement ? $linkElement->attr('href') : null;
@@ -93,36 +98,39 @@ class MainController extends Controller
                 ];
             }
         });
-
+        // dd($searchResults);
         return $searchResults;
     }
 
     private function dataConst() {
-        $data = [
-            'account_1' => [
-                'apiKey'    => 'AIzaSyCdogjHgWu2BJndKr8s-Pyj1VfbHleMqEo',
-                'cseId'     => '04327ce68475f4076'
-            ],
-            'account_2' => [
-                'apiKey'    => 'AIzaSyBhvs4xfTu8A7ayg-RsKQREqBDH--DrZW8',
-                'cseId'     => '36ee2f8543f584667'
-            ],
-            'account_3' => [
-                'apiKey'    => 'AIzaSyDDpxGjixl23nxUASuOdb4ydhRdr4zgpI8',
-                'cseId'     => '918c00d62fdd34400'
-            ],
-        ];
+        // Ambil data dengan hit terkecil
+        $consumerKey = ConsumerKey::orderBy('hit', 'asc')->first();
 
-        $index = Cache::get('google_api_key_index', 0);
+        if (!$consumerKey) {
+            return ['apiKey' => '', 'cseId' => '']; // Tidak ada data
+        }
 
-        // Pilih API Key dan CSE ID berdasarkan indeks
-        $apiKey = $data["account_" . ($index + 1)]['apiKey'];
-        $cseId = $data["account_" . ($index + 1)]['cseId'];
+        // Ambil API Key dan CSE ID dari data yang ditemukan
+        $apiKey = $consumerKey->apiKey;
+        $cseId = $consumerKey->cseId;
 
-        // Update indeks untuk rotasi berikutnya
-        $nextIndex = ($index + 1) % count($data);
-        Cache::put('google_api_key_index', $nextIndex, now()->addSeconds(10)); // Ganti sesuai dengan frekuensi rotasi
+        // Update hit count
+        $consumerKey->hit++;
+        $consumerKey->save();
 
         return ['apiKey' => $apiKey, 'cseId' => $cseId];
+    }
+
+    private function getFirstFourSentences($text)
+    {
+            // Menemukan posisi tanda kurung
+            // Memecah teks berdasarkan tanda titik, tanda seru, dan tanda tanya
+        $sentences = preg_split('/(?<=[.!?])\s+(?=[A-Z])/', $text, -1, PREG_SPLIT_NO_EMPTY);
+
+        // Ambil 4 kalimat pertama atau semua jika kurang dari 4
+        $firstFourSentences = array_slice($sentences, 0, 4);
+
+        // Gabungkan kalimat menjadi string
+        return implode(' ', $firstFourSentences);
     }
 }
